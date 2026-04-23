@@ -1,0 +1,57 @@
+export const theme = {
+  colors: {
+    background: '#F6F7FB',
+    surface: '#FFFFFF',
+    surfaceMuted: '#F1F3F8',
+    text: '#111827',
+    textSecondary: '#6B7280',
+    textMuted: '#94A3B8',
+    primary: '#111111',
+    primarySoft: '#1F2937',
+    border: '#E5E7EB',
+    success: '#15803D',
+    successSoft: '#DCFCE7',
+    danger: '#DC2626',
+    dangerSoft: '#FEE2E2',
+    warning: '#D97706',
+    warningSoft: '#FEF3C7',
+    info: '#2563EB',
+    infoSoft: '#DBEAFE',
+    overlay: 'rgba(15, 23, 42, 0.55)',
+    shadow: '#0F172A',
+    white: '#FFFFFF',
+    black: '#000000',
+  },
+  radius: {
+    sm: 12,
+    md: 18,
+    lg: 24,
+    xl: 32,
+    pill: 999,
+  },
+  spacing: {
+    xs: 8,
+    sm: 12,
+    md: 16,
+    lg: 20,
+    xl: 24,
+    xxl: 32,
+  },
+};
+
+export const shadows = {
+  card: {
+    shadowColor: theme.colors.shadow,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 6,
+  },
+  soft: {
+    shadowColor: theme.colors.shadow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    elevation: 3,
+  },
+};

@@ -1,10 +1,19 @@
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+import { shadows, theme } from '@/src/constants/theme';
 
 export function FullScreenLoader({ message }: { message: string }) {
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color="#111" />
-      <Text style={styles.message}>{message}</Text>
+      <View style={styles.card}>
+        <View style={styles.iconWrap}>
+          <MaterialCommunityIcons name="pine-tree" size={28} color={theme.colors.primary} />
+        </View>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={styles.title}>Cabana</Text>
+        <Text style={styles.message}>{message}</Text>
+      </View>
     </View>
   );
 }
@@ -14,8 +23,31 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
-    gap: 12,
+    backgroundColor: theme.colors.background,
+    padding: 24,
   },
-  message: { color: '#111', fontSize: 15 },
+  card: {
+    width: '100%',
+    maxWidth: 340,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
+    paddingHorizontal: 24,
+    paddingVertical: 28,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    ...shadows.card,
+  },
+  iconWrap: {
+    width: 60,
+    height: 60,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.colors.surfaceMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: { color: theme.colors.text, fontSize: 22, fontWeight: '800' },
+  message: { color: theme.colors.textSecondary, fontSize: 15, textAlign: 'center' },
 });

@@ -2,10 +2,12 @@ import * as React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, router } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { z } from 'zod';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { ScreenContainer } from '@/src/components/ScreenContainer';
+import { shadows, theme } from '@/src/constants/theme';
 import { authService } from '@/src/services/auth.service';
 import { useAuthStore } from '@/src/store/auth.store';
 import type { AuthState } from '@/src/store/auth.store';
@@ -56,14 +58,10 @@ export default function LoginPage() {
   });
 
   return (
-    <ScreenContainer>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
+    <ScreenContainer scroll>
+      <View style={styles.wrapper}>
         <View style={styles.card}>
-          <Text style={styles.title}>Cabana</Text>
-          <Text style={styles.subtitle}>Entre com seu CNPJ e senha</Text>
-
-          <View style={styles.fieldGroup}>
-            <Text style={styles.label}>CNPJ</Text>
+          <Field label="CNPJ" error={errors.cnpj?.message} icon="office-building-outline">
             <Controller
               control={control}
               name="cnpj"
@@ -71,7 +69,7 @@ export default function LoginPage() {
                 <TextInput
                   style={styles.input}
                   placeholder="00.000.000/0000-00"
-                  placeholderTextColor="#7a7a7a"
+                  placeholderTextColor={theme.colors.textMuted}
                   keyboardType="number-pad"
                   autoCapitalize="none"
                   onBlur={onBlur}
@@ -80,11 +78,9 @@ export default function LoginPage() {
                 />
               )}
             />
-            {errors.cnpj ? <Text style={styles.error}>{errors.cnpj.message}</Text> : null}
-          </View>
+          </Field>
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Senha</Text>
+          <Field label="Senha" error={errors.senha?.message} icon="lock-outline">
             <Controller
               control={control}
               name="senha"
@@ -92,7 +88,7 @@ export default function LoginPage() {
                 <TextInput
                   style={styles.input}
                   placeholder="Digite sua senha"
-                  placeholderTextColor="#7a7a7a"
+                  placeholderTextColor={theme.colors.textMuted}
                   secureTextEntry
                   autoCapitalize="none"
                   onBlur={onBlur}
@@ -101,15 +97,14 @@ export default function LoginPage() {
                 />
               )}
             />
-            {errors.senha ? <Text style={styles.error}>{errors.senha.message}</Text> : null}
-          </View>
+          </Field>
 
           <Pressable style={[styles.button, loading && styles.buttonDisabled]} onPress={onSubmit} disabled={loading}>
             <Text style={styles.buttonText}>{loading ? 'Entrando...' : 'Entrar'}</Text>
           </Pressable>
 
           <View style={styles.footerRow}>
-            <Text style={styles.footerText}>Não tem uma conta?</Text>
+            <Text style={styles.footerText}>Ainda não tem conta?</Text>
             <Link href="/(auth)/register" asChild>
               <Pressable>
                 <Text style={styles.link}>Registrar-se</Text>
@@ -117,42 +112,107 @@ export default function LoginPage() {
             </Link>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </ScreenContainer>
   );
 }
 
+function Field({
+  label,
+  error,
+  icon,
+  children,
+}: {
+  label: string;
+  error?: string;
+  icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+  children: React.ReactNode;
+}) {
+  return (
+    <View style={styles.fieldGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={[styles.inputWrapper, error ? styles.inputWrapperError : null]}>
+        <MaterialCommunityIcons name={icon} size={20} color={error ? theme.colors.danger : theme.colors.textSecondary} />
+        <View style={styles.inputContent}>{children}</View>
+      </View>
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, justifyContent: 'center' },
-  card: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#111',
-    padding: 24,
-    gap: 16,
+  wrapper: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 28,
+    paddingBottom: 28,
+    gap: 18,
   },
-  title: { fontSize: 32, fontWeight: '700', color: '#111' },
-  subtitle: { fontSize: 14, color: '#444' },
-  fieldGroup: { gap: 8 },
-  label: { fontSize: 14, fontWeight: '600', color: '#111' },
-  input: {
+  heroCard: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.lg,
+    padding: 24,
+    gap: 12,
+    ...shadows.card,
+  },
+  heroBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: theme.radius.pill,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  heroBadgeText: { color: theme.colors.white, fontWeight: '800', fontSize: 13 },
+  title: { fontSize: 30, fontWeight: '800', color: theme.colors.white },
+  subtitle: { fontSize: 14, lineHeight: 22, color: 'rgba(255,255,255,0.78)' },
+  card: {
+    width: '100%',
+    maxWidth: 460,
+    alignSelf: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
     borderWidth: 1,
-    borderColor: '#111',
+    borderColor: theme.colors.border,
+    padding: 22,
+    gap: 16,
+    ...shadows.card,
+  },
+  fieldGroup: { gap: 8 },
+  label: { fontSize: 14, fontWeight: '700', color: theme.colors.text },
+  inputWrapper: {
+    minHeight: 56,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.md,
     paddingHorizontal: 14,
-    paddingVertical: 12,
-    color: '#111',
+    backgroundColor: theme.colors.surfaceMuted,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  inputWrapperError: { borderColor: theme.colors.danger, backgroundColor: theme.colors.dangerSoft },
+  inputContent: { flex: 1 },
+  input: {
+    color: theme.colors.text,
     fontSize: 16,
+    paddingVertical: 14,
   },
   button: {
-    backgroundColor: '#111',
-    paddingVertical: 14,
+    backgroundColor: theme.colors.primary,
+    minHeight: 54,
+    borderRadius: theme.radius.md,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
   },
   buttonDisabled: { opacity: 0.7 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  footerRow: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
-  footerText: { color: '#444' },
-  link: { color: '#111', fontWeight: '700' },
-  error: { color: '#b00020', fontSize: 13 },
+  buttonText: { color: theme.colors.white, fontSize: 16, fontWeight: '800' },
+  footerRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 4 },
+  footerText: { color: theme.colors.textSecondary },
+  link: { color: theme.colors.info, fontWeight: '800' },
+  error: { color: theme.colors.danger, fontSize: 13, fontWeight: '600' },
 });
