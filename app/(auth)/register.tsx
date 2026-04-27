@@ -28,9 +28,7 @@ const schema = z.object({
 type FormValues = z.input<typeof schema>;
 
 function extractErrorMessage(error: unknown): string {
-  if (typeof error === 'string' && error.trim()) {
-    return error;
-  }
+  if (typeof error === 'string' && error.trim()) return error;
 
   if (error && typeof error === 'object') {
     const err = error as {
@@ -45,17 +43,9 @@ function extractErrorMessage(error: unknown): string {
       };
     };
 
-    if (err.response?.data?.error?.message) {
-      return err.response.data.error.message;
-    }
-
-    if (err.response?.data?.message) {
-      return err.response.data.message;
-    }
-
-    if (err.message) {
-      return err.message;
-    }
+    if (err.response?.data?.error?.message) return err.response.data.error.message;
+    if (err.response?.data?.message) return err.response.data.message;
+    if (err.message) return err.message;
   }
 
   return 'Não foi possível concluir o cadastro.';
@@ -63,6 +53,7 @@ function extractErrorMessage(error: unknown): string {
 
 export default function RegisterPage() {
   const [loading, setLoading] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const {
     control,
@@ -114,7 +105,7 @@ export default function RegisterPage() {
         </View>
 
         <View style={styles.card}>
-          <Field label="Nome" error={errors.nome?.message} icon="account-outline">
+          <Field label="Nome" error={errors.nome?.message} icon="account-outline" children={undefined}>
             <Controller
               control={control}
               name="nome"
@@ -132,7 +123,7 @@ export default function RegisterPage() {
             />
           </Field>
 
-          <Field label="CNPJ" error={errors.cnpj?.message} icon="office-building-outline">
+          <Field label="CNPJ" error={errors.cnpj?.message} icon="office-building-outline" children={undefined}>
             <Controller
               control={control}
               name="cnpj"
@@ -150,26 +141,43 @@ export default function RegisterPage() {
             />
           </Field>
 
-          <Field label="Senha" error={errors.senha?.message} icon="lock-outline">
+          <Field label="Senha" error={errors.senha?.message} icon="lock-outline" children={undefined}>
             <Controller
               control={control}
               name="senha"
               render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={styles.input}
-                  placeholder="Digite sua senha"
-                  placeholderTextColor={theme.colors.textMuted}
-                  secureTextEntry
-                  autoCapitalize="none"
-                  onBlur={onBlur}
-                  value={value}
-                  onChangeText={onChange}
-                />
+                <View style={styles.passwordRow}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Digite sua senha"
+                    placeholderTextColor={theme.colors.textMuted}
+                    secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    onBlur={onBlur}
+                    value={value}
+                    onChangeText={onChange}
+                  />
+
+                  <Pressable
+                    onPress={() => setShowPassword((prev) => !prev)}
+                    hitSlop={10}
+                    accessibilityRole="button"
+                    accessibilityLabel={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                    style={styles.passwordToggle}
+                  >
+                    <MaterialCommunityIcons
+                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      size={22}
+                      color={theme.colors.textSecondary}
+                    />
+                  </Pressable>
+                </View>
               )}
             />
           </Field>
 
-          <Field label="Telefone" error={errors.fone?.message} icon="phone-outline">
+          <Field label="Telefone" error={errors.fone?.message} icon="phone-outline" children={undefined}>
             <Controller
               control={control}
               name="fone"
@@ -187,7 +195,7 @@ export default function RegisterPage() {
             />
           </Field>
 
-          <Field label="E-mail" error={errors.email?.message} icon="email-outline">
+          <Field label="E-mail" error={errors.email?.message} icon="email-outline" children={undefined}>
             <Controller
               control={control}
               name="email"
@@ -241,14 +249,17 @@ function Field({
   return (
     <View style={styles.fieldGroup}>
       <Text style={styles.label}>{label}</Text>
+
       <View style={[styles.inputWrapper, error ? styles.inputWrapperError : null]}>
         <MaterialCommunityIcons
           name={icon}
           size={20}
           color={error ? theme.colors.danger : theme.colors.textSecondary}
         />
+
         <View style={styles.inputContent}>{children}</View>
       </View>
+
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
   );
@@ -276,22 +287,11 @@ const styles = StyleSheet.create({
     gap: 8,
     ...shadows.soft,
   },
-  heroEyebrow: {
-    color: theme.colors.success,
-    fontSize: 13,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-  },
   title: {
     fontSize: 30,
     fontWeight: '800',
     color: theme.colors.text,
     textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 14,
-    lineHeight: 22,
-    color: theme.colors.textSecondary,
   },
   card: {
     width: '100%',
@@ -335,6 +335,23 @@ const styles = StyleSheet.create({
     height: 54,
     color: theme.colors.text,
     fontSize: 16,
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  passwordInput: {
+    flex: 1,
+    height: 54,
+    color: theme.colors.text,
+    fontSize: 16,
+    paddingRight: 8,
+  },
+  passwordToggle: {
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   error: {
     color: theme.colors.danger,

@@ -26,7 +26,9 @@ type FormValues = z.input<typeof schema>;
 export default function LoginPage() {
   const setSession = useAuthStore((state: AuthState) => state.setSession);
   const setUser = useAuthStore((state: AuthState) => state.setUser);
+
   const [loading, setLoading] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const {
     control,
@@ -43,11 +45,15 @@ export default function LoginPage() {
   const onSubmit = handleSubmit(async (values: FormValues) => {
     try {
       setLoading(true);
+
       const payload = schema.parse(values);
       const auth = await authService.login(payload);
+
       await setSession(auth.access_token, auth.token_type);
+
       const user = await authService.me();
       setUser(user);
+
       router.replace('/(app)');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Não foi possível realizar o login.';
@@ -85,16 +91,33 @@ export default function LoginPage() {
               control={control}
               name="senha"
               render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={styles.input}
-                  placeholder="Digite sua senha"
-                  placeholderTextColor={theme.colors.textMuted}
-                  secureTextEntry
-                  autoCapitalize="none"
-                  onBlur={onBlur}
-                  value={value}
-                  onChangeText={onChange}
-                />
+                <View style={styles.passwordRow}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Digite sua senha"
+                    placeholderTextColor={theme.colors.textMuted}
+                    secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    onBlur={onBlur}
+                    value={value}
+                    onChangeText={onChange}
+                  />
+
+                  <Pressable
+                    onPress={() => setShowPassword((prev) => !prev)}
+                    hitSlop={10}
+                    accessibilityRole="button"
+                    accessibilityLabel={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                    style={styles.passwordToggle}
+                  >
+                    <MaterialCommunityIcons
+                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      size={22}
+                      color={theme.colors.textSecondary}
+                    />
+                  </Pressable>
+                </View>
               )}
             />
           </Field>
@@ -131,10 +154,17 @@ function Field({
   return (
     <View style={styles.fieldGroup}>
       <Text style={styles.label}>{label}</Text>
+
       <View style={[styles.inputWrapper, error ? styles.inputWrapperError : null]}>
-        <MaterialCommunityIcons name={icon} size={20} color={error ? theme.colors.danger : theme.colors.textSecondary} />
+        <MaterialCommunityIcons
+          name={icon}
+          size={20}
+          color={error ? theme.colors.danger : theme.colors.textSecondary}
+        />
+
         <View style={styles.inputContent}>{children}</View>
       </View>
+
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
   );
@@ -149,26 +179,6 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
     gap: 18,
   },
-  heroCard: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.lg,
-    padding: 24,
-    gap: 12,
-    ...shadows.card,
-  },
-  heroBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: theme.radius.pill,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  heroBadgeText: { color: theme.colors.white, fontWeight: '800', fontSize: 13 },
-  title: { fontSize: 30, fontWeight: '800', color: theme.colors.white },
-  subtitle: { fontSize: 14, lineHeight: 22, color: 'rgba(255,255,255,0.78)' },
   card: {
     width: '100%',
     maxWidth: 460,
@@ -181,8 +191,14 @@ const styles = StyleSheet.create({
     gap: 16,
     ...shadows.card,
   },
-  fieldGroup: { gap: 8 },
-  label: { fontSize: 14, fontWeight: '700', color: theme.colors.text },
+  fieldGroup: {
+    gap: 8,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: theme.colors.text,
+  },
   inputWrapper: {
     minHeight: 56,
     borderWidth: 1,
@@ -194,12 +210,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  inputWrapperError: { borderColor: theme.colors.danger, backgroundColor: theme.colors.dangerSoft },
-  inputContent: { flex: 1 },
+  inputWrapperError: {
+    borderColor: theme.colors.danger,
+    backgroundColor: theme.colors.dangerSoft,
+  },
+  inputContent: {
+    flex: 1,
+  },
   input: {
     color: theme.colors.text,
     fontSize: 16,
     paddingVertical: 14,
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  passwordInput: {
+    flex: 1,
+    color: theme.colors.text,
+    fontSize: 16,
+    paddingVertical: 14,
+    paddingRight: 8,
+  },
+  passwordToggle: {
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   button: {
     backgroundColor: theme.colors.primary,
@@ -209,10 +247,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 4,
   },
-  buttonDisabled: { opacity: 0.7 },
-  buttonText: { color: theme.colors.white, fontSize: 16, fontWeight: '800' },
-  footerRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 4 },
-  footerText: { color: theme.colors.textSecondary },
-  link: { color: theme.colors.info, fontWeight: '800' },
-  error: { color: theme.colors.danger, fontSize: 13, fontWeight: '600' },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
+  buttonText: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  footerText: {
+    color: theme.colors.textSecondary,
+  },
+  link: {
+    color: theme.colors.info,
+    fontWeight: '800',
+  },
+  error: {
+    color: theme.colors.danger,
+    fontSize: 13,
+    fontWeight: '600',
+  },
 });
