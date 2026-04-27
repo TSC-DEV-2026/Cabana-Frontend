@@ -21,6 +21,7 @@ export const useAuthStore = create<AuthState>((set: (partial: Partial<AuthState>
   isHydrated: false,
 
   hydrate: async () => {
+  try {
     const token = await storageService.getToken();
     const tokenType = await storageService.getTokenType();
 
@@ -29,7 +30,17 @@ export const useAuthStore = create<AuthState>((set: (partial: Partial<AuthState>
       tokenType,
       isHydrated: true,
     });
-  },
+  } catch (error) {
+    console.error("[AuthStore] Erro ao hidratar:", error);
+
+    set({
+      token: null,
+      tokenType: null,
+      user: null,
+      isHydrated: true, // 🔥 garante saída do loading
+    });
+  }
+},
 
   setSession: async (token: string, tokenType: string) => {
     await storageService.saveToken(token, tokenType);

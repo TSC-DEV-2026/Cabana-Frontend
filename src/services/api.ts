@@ -1,49 +1,62 @@
-import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
+import axios from "axios";
+import { useAuthStore } from "@/src/store/auth.store";
 
-import { API_BASE_URL } from '@/src/constants/env';
-import { useAuthStore } from '@/src/store/auth.store';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_TIMEOUT = Number(process.env.EXPO_PUBLIC_API_TIMEOUT_MS || 5000);
 
+// ✅ ADICIONADO
 export interface ApiEnvelope<T> {
   data: T;
-  error: {
-    message?: string;
-  } | null;
+  message?: string;
+  success?: boolean;
 }
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: API_TIMEOUT,
   headers: {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = useAuthStore.getState().token;
-  const tokenType = useAuthStore.getState().tokenType || 'bearer';
+// 🔐 interceptor de request
+api.interceptors.request.use((config) => {
+  const { token, tokenType } = useAuthStore.getState();
 
-  if (token) {
-    config.headers.Authorization = `${capitalizeTokenType(tokenType)} ${token}`;
+  if (token && tokenType) {
+    config.headers.Authorization = `${tokenType} ${token}`;
   }
 
   return config;
 });
 
+// 🚨 interceptor de response
 api.interceptors.response.use(
-  (response: AxiosResponse) => response,
-  async (error: AxiosError<ApiEnvelope<unknown>>) => {
-    if (error.response?.status === 401) {
-      await useAuthStore.getState().clearSession();
+  (response) => response,
+  async (error) => {
+    if (!error.response) {
+      console.error("[API] Backend não respondeu:", error.message);
+
+      return Promise.reject({
+        message: "Servidor indisponível. Verifique a conexão.",
+        code: "NETWORK_ERROR",
+      });
     }
 
-    const apiMessage = error.response?.data?.error?.message;
-    const fallbackMessage = error.message || 'Erro inesperado na comunicação com a API.';
+    if (error.response.status === 401) {
+      const { clearSession } = useAuthStore.getState();
+      await clearSession();
+    }
 
-    return Promise.reject(new Error(apiMessage || fallbackMessage));
+    if (error.response.status >= 500) {
+      return Promise.reject({
+        message: "Problema interno do servidor.",
+        code: "SERVER_ERROR",
+      });
+
+      
+    }
+
+    return Promise.reject(error);
   }
 );
-
-function capitalizeTokenType(value: string) {
-  if (!value) return 'Bearer';
-  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
-}

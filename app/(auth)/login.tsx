@@ -61,7 +61,7 @@ export default function LoginPage() {
     <ScreenContainer scroll>
       <View style={styles.wrapper}>
         <View style={styles.card}>
-          <Field label="CNPJ" error={errors.cnpj?.message} icon="office-building-outline">
+          <Field label="CNPJ" error={errors.cnpj?.message} icon="office-building-outline" children={undefined}>
             <Controller
               control={control}
               name="cnpj"
@@ -80,7 +80,7 @@ export default function LoginPage() {
             />
           </Field>
 
-          <Field label="Senha" error={errors.senha?.message} icon="lock-outline">
+          <Field label="Senha" error={errors.senha?.message} icon="lock-outline" children={undefined}>
             <Controller
               control={control}
               name="senha"

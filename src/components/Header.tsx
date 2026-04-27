@@ -3,6 +3,7 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+
 import { shadows, theme } from '@/src/constants/theme';
 import { UserMe } from '@/src/types/auth';
 
